@@ -1,119 +1,145 @@
-SOCIAL_ANIMO
+# SOCIAL_ANIMO
 
-- Requirement : Python 3
+## Requirements
+- Python 3
 
-- Change your email settings in settings.py
-    - EMAIL_HOST_USER = 'add_your_gmail@gmail.com'
-    - EMAIL_HOST_PASSWORD = 'add_your_password'
+## Setup
 
-- create python 3 environment and install requirements.txt
-    - pip install -r requirements.txt
+1. **Change Email Settings in `settings.py`:**
+   - `EMAIL_HOST_USER = 'add_your_gmail@gmail.com'`
+   - `EMAIL_HOST_PASSWORD = 'add_your_password'`
 
-- run local server
-    - python manage.py runserver
+2. **Create Python 3 environment and install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-- For regestration 
-    - /accounts/signup/
+3. **Run Local Server:**
+   ```bash
+   python manage.py runserver
+   ```
 
-- For login
-    - /accounts/login/ or use swagger
+## API Endpoints
 
-- For logout
-    - /accounts/logout/ or use swagger
+### Authentication Endpoints:
+- **Registration:** `/accounts/signup/`
+- **Login:** `/accounts/login/` (or use Swagger)
+- **Logout:** `/accounts/logout/` (or use Swagger)
 
+### API Structure:
+- `<app_name>/api/<url_end_point>`
 
-- API structure followes : <app_name>/api/<url_end_point>
+## Use Cases
 
+1. **User Registration & Email Verification:**
+   - Registration uses Django's default auth URLs.
+   - Email verification API: `/users/api/email-verification/` (inside `users` app as `EmailVerification`).
+     - **Request body to send email with unique OTP:**
+       ```json
+       {
+         "email": "abc@gmail.com"
+       }
+       ```
+     - **Request body to verify email with OTP:**
+       ```json
+       {
+         "email": "abc@gmail.com",
+         "otp": "15NJ51"
+       }
+       ```
 
-Create a social media backend using Django and DRF. Following are the use cases to consider
-1. User should register and verify their email.
-    - For regestration used default django auth urls
-    - For email confirmation check(authentication not required for this) - /users/api/email-verification/ inside users app as EmailVerification
-        - Required body for send a mail with unique OTP
-            {
-                "email": "abc@gmail.com"
-            }
-        - Required body for verify email with given otp
-            {
-                "email":"abc@gmail.com",
-                "otp":"15NJ51"
-            }
+2. **Find and Add Friends:**
+   - Search for friends: `/friends/api/search-friends/?q=<string>`
+   - Add friends: `/friends/api/add-friends/`
+     - **Required body to add a friend:**
+       ```json
+       {
+         "profile_id": <pk_of_profile>
+       }
+       ```
 
-2. User should be able to find and add their friends - 
-    - For find and search check API : /friends/api/search-friends/?q=<string>
-    - For add friends check : /friends/api/add-friends/ (for add friend, profile should be created in Profile(prfl_profile) table)
-        - Required body for add any other profile as friend
-            {
-                "profile_id":<pk_of_profile>
-            }
+3. **Update Status and Upload Photos:**
+   - Add/update status: `/content/api/status-add-update/`
+     - **POST request to add status:**
+       ```json
+       {
+         "status": <char>
+       }
+       ```
+     - **PUT request to update status:**
+       ```json
+       {
+         "status": <char>,
+         "status_id": <pk>
+       }
+       ```
+   - Add/update photos: `/content/api/pic-add-update/`
+     - **POST request to add picture:**
+       ```json
+       {
+         "picture": <file obj>,
+         "is_current_profile_status": <true/false>
+       }
+       ```
+     - **PUT request to update picture:**
+       ```json
+       {
+         "picture": <char>,
+         "picture_id": <pk>
+       }
+       ```
 
-3. User should be able to update status and upload photos
-    - API to add status - /content/api/status-add-update/ (POST method), API to updated status call PUT method
-        - Required body for add status
-            {
-                "status" :<char>,
-            }
+4. **Like and Comment on Pictures:**
+   - Model methods for comments (`cntnt_comments`) and likes (`cntnt_likes`) are overridden to track counts.
+   - Add comment on picture/status/comment: `/content/api/add-comment/`
+     - **Request body for picture comment:**
+       ```json
+       {
+         "picture": <picture id>,
+         "comment": <text field>
+       }
+       ```
+     - **Request body for status comment:**
+       ```json
+       {
+         "status": <status id>,
+         "comment": <text field>
+       }
+       ```
+     - **Request body for comment on another comment:**
+       ```json
+       {
+         "parent_comment": <comment id>,
+         "comment": <text field>
+       }
+       ```
 
-        - Required body for update status
-            {
-                "status" :<char>,
-                "status_id" : <pk>,
-            }
+5. **Update Profile Picture:**
+   - Add/update profile picture: `/content/api/pic-add-update/`
+     - **Required body to add profile picture:**
+       ```json
+       {
+         "picture": <file obj>,
+         "is_current_profile_status": "true"
+       }
+       ```
 
-    - API to add photos - /content/api/pic-add-update/ (POST method), API to updated photo call PUT method
-        - Required body for add picture
-            {
-                "picture" :<file obj>,
-                "is_current_profile_status":<send true if user want to set as profile picture else send false>
-            }
+## Tech Requirements
 
-        - Required body for update picture
-            {
-                "picture" :<char>,
-                "picture_id" : <pk>,
-            }
+1. **API Authentication & Authorization using OAuth:**
+   - Uses Django's allauth views for registration/login/logout.
+   - Authentication classes added for required APIs.
 
-4. User should be able to like and comment on pictures
-    - Save method of comment(cntnt_comments) and like(cntnt_likes) model overriden for calculate number of likes and comments.
-    - API to add comments on picture/status/comments : /content/api/add-comment/
-        - required body for add comments for picture : 
-            {
-                "picture" : <picture id>,
-                "comment" : <text field>
-            }
-        - required body for add comments for status
-            {
-                "status" : <status id>,
-                "comment" : <text field>
-            }
-        - required body for add comments for other comments
-            {
-                "parent_comment" : <comment id>,
-                "comment" : <text field>
-            }
+2. **Models and Serializers for Request Validation:**
+   - Each app contains respective models and serializers.
 
-5. User should be able to update profile picture
-    - API to add/update profile picture : /content/api/pic-add-update/
-        - Required body for add profile picture
-            {
-                "picture" :<file obj>,
-                "is_current_profile_status": "true"
-            }
+3. **Use of Middlewares for Exception Handling.**
 
-Tech requirements for above assignment:
-1. API authentication and Authorization using OAuth
-    - Used default django's allauth views for regestration/login/logout also we can use swagger
-    - added authetication class in required apis
+4. **Appropriate Use of Loggers:**
+   - Django's default logger configured in `settings.py`.
+   - Logs are stored in `project_root/app_logs/`.
 
-2. Create models and serializers for request validation
-    - Each app having respected models and serializers.
-
-3. use of middlewares for exception handling
-
-4. appropriate use of loggers
-    - Check settings.py, Added django default logger for each app, log will be available in project_root/app_logs/
-
-5. Use of cache to speed up the system
-    - Used database caching
-    - Created social_animo_caching cache table - check in settings.py
-    - Added for /friends/api/search-friends/ : In friends app as SearchFriends view
+5. **Use of Cache to Optimize Performance:**
+   - Database caching is used.
+   - `social_animo_caching` cache table created (configured in `settings.py`).
+   - Caching added to `/friends/api/search-friends/` in the `SearchFriends` view inside the `friends` app.
